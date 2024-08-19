@@ -11,18 +11,6 @@ import ranking
 
 DEBUG = False
 
-# tomorrow, try this for creating a sortable table:
-# https://stackoverflow.com/questions/10683712/html-table-sort
-# datatables looks good
-
-#class Game:
-#    def __init__( self ):
-#        self.phase = "Pregrame" #Phase is one of Pregrame, Ingame, Postgame
-        
-# convert curl request (can be found using devtools) to python request: https://curl.trillworks.com/#python
-
-# check mafiascum/mafiauniverse to see what other stats might be worth recording
-
 class Room:
     def __init__( self, token, roomName, startedBy, listed, referer ):
         #cookies = token
@@ -32,12 +20,9 @@ class Room:
         if referer:
             headers['Referer']=referer
 
-        #print( referer )
-
-        #print( "hi" )
         # will crash below if on vpn (banned)
-        self.roomId = loads( rq.post('https://mafia.gg/api/rooms', cookies=token, data=data, headers=headers).content )['id']
-        #print( "bye" )
+        self.roomId = loads( rq.post('https://mafia.gg/api/rooms',
+                cookies=token, data=data, headers=headers).content )['id']
         
         self.startedBy = startedBy
         self.phase = "pre" #Phase is one of pre, in, post
@@ -191,13 +176,13 @@ class Room:
         return( self.sendPacket( {'type': 'options', 'roles': converted }) )
 
     def setupAllStars( self, num ):
-        payload = {'dayLength': 11, 'dayStart': 'mafiaNKn1',
+        payload = {'dayLength': 10, 'dayStart': 'mafiaNKn1',
                'deadlockPreventionLimit': '-1',
                'disableVoteLock': True, 'hideSetup': False,
                'hostRoleSelection': False, 'majorityRule': '51',
                'mustVote': False, 'nightLength': 3, 'noNightTalk': False,
                'revealSetting': 'noReveal', 'roles': {"31": 1,"34": 1,"38": 1,"57": 7,"75": 3},
-               'roomName': '⭐Ranked All Stars (Game {})⭐ [mafiastats.cf]'.format( num ), 'scaleTimer': False, 'twoKp': '3',
+               'roomName': '⭐Ranked All Stars (Game {})⭐ [mafiastats.cf]'.format( num ), 'scaleTimer': True, 'twoKp': '3',
                'type': 'options'}
         return self.sendPacket( payload )
 
@@ -422,7 +407,7 @@ class Session:
     rankingFile = "rankings.xlsx"
     banFile = "bans.xlsx"
     #welcomeMsg1 = "⭐Ranked All Stars⭐"
-    welcomeMsg2 = "Welcome! Rules and public rankings can be found at https://mafiastats.cf."#Type {}help for a list of available commands.".format( commandChar ) 
+    welcomeMsg2 = "Welcome! Rules and public rankings can be found at https://mafiastats.cf. Join our Discord at https://discord.gg/mFnTwjPA9D to be notified of upcoming games."#Type {}help for a list of available commands.".format( commandChar ) 
     afkMsg = "AFK check! Click 'Become a player' to rejoin."
     delay = 3
     startMsg = "Starting game in {} seconds...".format( delay )
@@ -938,5 +923,18 @@ def main():
     print( "Goodbye" )
 
 main()
+
+
         
+# tomorrow, try this for creating a sortable table:
+# https://stackoverflow.com/questions/10683712/html-table-sort
+# datatables looks good
+
+#class Game:
+#    def __init__( self ):
+#        self.phase = "Pregrame" #Phase is one of Pregrame, Ingame, Postgame
+        
+# convert curl request (can be found using devtools) to python request: https://curl.trillworks.com/#python
+
+# check mafiascum/mafiauniverse to see what other stats might be worth recording
         

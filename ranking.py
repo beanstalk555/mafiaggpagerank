@@ -90,7 +90,7 @@ def sendFileToPi( fileName, portFile ):
 def updateBanDataWeb( banFile ):
     # update bans
     bantable = xlsxToHTML( banFile, "bans" )
-    replaceInFile( "www/index.html", "<!STARTBANTABLE-->", "<!ENDBANTABLE-->", bantable )
+    replaceInFile( "www/index.html", "<!STARTBANTABLE--><!--", "--><!ENDBANTABLE-->", bantable )
     sendFileToPi( "www/index.html", "credentials.txt" )
 
 
@@ -191,10 +191,10 @@ def buildRankingTable( sumFile, rankFile ):
             row += 1
             continue
             
-            
-
+        # possibly add edges between town members to see if this rewards a town win more
+        townCoopBoost = True
         
-
+        
         for winner in winners:
             for loser in losers:
                 #if not winner in data:
@@ -202,6 +202,7 @@ def buildRankingTable( sumFile, rankFile ):
                 #if not loser in data:
                 #        data[loser] = {"townWinsOn": {}, "mafiaWinsOn": {}, "townLossTo": {}, "mafiaLossTo": {}}
                 if winTeam == "Town":
+                    # edges mafia to town
                     try:
                         data[winner]["townWinsOn"][loser] += 1
                     except KeyError as msg:
@@ -210,7 +211,11 @@ def buildRankingTable( sumFile, rankFile ):
                         data[loser]["mafiaLossTo"][winner] += 1
                     except KeyError as msg:
                         data[loser]["mafiaLossTo"][winner] = 1
+                    # possibly add edges between town members to see if this rewards a town win more
+                    if townCoopBoost:
+                        pass                        
                 if winTeam == "Mafia":
+                    # edges from town to mafia
                     try:
                         data[winner]["mafiaWinsOn"][loser] += 1
                     except KeyError as msg:
@@ -246,7 +251,7 @@ def buildRankingTable( sumFile, rankFile ):
     # calculating modified PageRank which weights how many games
     # each player has played as compared to the average. more games
     # played is a boost in rank, regardless if win or loss
-    wFactor = 1/10 # how much to weight this?
+    wFactor = 0 # how much to weight this?
     gamesPlayed = {}
     gameTotal = 0
     for player in data:
@@ -257,11 +262,22 @@ def buildRankingTable( sumFile, rankFile ):
         games = tWins+mWins+tLoss+mLoss
         gamesPlayed[ player ] = games
         gameTotal += games
-    #avgGamesPerPlayer = gameTotal/len( player )
+    avgGamesPerPlayer = gameTotal/len( data )
+    
+    print( "Average games per player:", avgGamesPerPlayer )
     mprDict = {}
     for player in data:
         mprDict[player] = (1 - wFactor) * prDict[player]+ wFactor * gamesPlayed[player]/gameTotal
         data[player]["mpr"]=mprDict[player]
+
+    # players below the threshold are unranked:
+    for player in data:
+        if gamesPlayed[ player ] < avgGamesPerPlayer:
+            data[player]["pr"] = "-"
+            prDict[player] = 0
+            data[player]["mpr"] = "-"
+            mprDict[player] = 0
+    
     # calculate rank based on this:
     sortedMRank  = sorted(mprDict.items(), key = lambda kv:(kv[1], kv[0]), reverse = True)
     sortedRank  = sorted(prDict.items(), key = lambda kv:(kv[1], kv[0]), reverse = True)
@@ -301,11 +317,20 @@ def buildRankingTable( sumFile, rankFile ):
         winPercent = (tWins+mWins)/(tWins+mWins+tLoss+mLoss)
 
 
-        prank = "{:.2f}%".format( data[player]["pr"]*100 )
-        mprank = "{:.2f}%".format( data[player]["mpr"]*100 )
-        checksum += data[player]["mpr"]
-        rank = data[player]["rank"]
-        mrank = data[player]["mrank"]
+        if not type( data[player]["pr"] ) == str:
+            prank = "{:.4f}%".format( data[player]["pr"]*100 )
+            rank = data[player]["rank"]
+        else:
+            prank = "-"
+            rank = 9999999
+        if not type( data[player]["mpr"] ) == str:
+            mprank = "{:.4f}%".format( data[player]["mpr"]*100 )
+            mrank = data[player]["mrank"]
+        else:
+            mprank = "-"
+            mrank = 9999999
+            
+        #checksum += data[player]["mpr"] useless to have this if setting things to 0       
         
         
         rankings['A'+str(row)] = player # username
@@ -346,7 +371,7 @@ def buildRankingTable( sumFile, rankFile ):
         #print( key, data[key] )
         row += 1
 
-    print( "Checksum: ", checksum )
+    #print( "Checksum: ", checksum )
     wb.save( rankFile )
 
     wb.close()
