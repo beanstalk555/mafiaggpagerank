@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<head>
+
+<title>Ranked All Stars - About</title>
+    <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" href="yellow-star-icon-21.png" sizes="192x192">
+    <style type="text/css">body{margin:40px auto;max-width:1300px;line-height:1.6;font-size:24px;font-family:sans-serif;padding:0px 20px}h1,h2,h3,h4{line-height:1.2}footer{text-align: center}</style>
+	
+</head>
+
+<body>
+
+<a id="#rankings"><h2>The Ranking System</h2></a>
+
+<p>The ranking system is currently based entirely on wins and losses only. Some day I may extend it to take into account whether a player was a power role or not and/or how long they survive. But for now, your ranking increases or decreases by the same amount solely depending on your alignment and whether your team wins or loses the game.</p>
+
+<p>The ranking system is based on PageRank. <a href="https://en.wikipedia.org/wiki/PageRank">PageRank</a> is an algorithm developed by Google to rank the importance of web pages based on their outgoing links to other pages, but it has numerous other applications. It creates a <a href="https://en.wikipedia.org/wiki/Directed_graph)">directed graph</a> with a node associated to each page, and arrows between nodes associated to links from one page to another. Using the graph's <a href="https://en.wikipedia.org/wiki/Adjacency_matrix">adjacency matrix<a/>, it (more-or-less) simulates a <a href="https://en.wikipedia.org/wiki/Random_walk">random walk</a> in this graph and assigns a weight to each node, where the weight roughly stands for the proportion of time that the walk is visiting that node. The sum of all the weights for each player is 100%, so each player is receiving a "share of importance".</p>
+
+<p>To calculate mafia rankings using PageRank, I use a graph with a node for each user who has ever used the system. For each game, I consider each (winner, loser) pair and add an arrow from the loser to the winner (or increase the arrow's weight if it already exists). To stabilize things a bit and help deal with sinks in the graph, I also add weighted edges from each node to itself.</p>
+
+<p>A higher rank correlates with lots of incoming arrows (wins against other players). However, it isn't just your wins that matter, but who you win against. It sounds paradoxical, but your rank is higher if you have wins against higher-ranked players. The nature of the ranking system is such that winning as mafia gives you a higher boost in rank than winning as town. On the other hand, losing as mafia hurts your rank more than losing as town.</p>
+
+<p>There is one modification that I made to the algorithm: After computing the rankings with PageRank, I calculate the average number of games played per player. Players must play at least this many games in order to appear in the rankings (otherwise they are ranked 9999999). This is to incentivize players to play more rather than "quit while ahead."</p>
+
+<a href=".">Back to rankings.</a>
